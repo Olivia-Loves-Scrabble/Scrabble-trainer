@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Scrabble Anagram Trainer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Scrabble Trainer</h1>
+
+<div id="stats"></div>
+
+<div id="jumbleArea">
+<div id="letters" aria-live="assertive"></div>
+<div id="anagramCount"></div>
+</div>
+
+<label for="answer">Your answers</label>
+
+<input
+id="answer"
+type="text"
+autocorrect="off"
+autocapitalize="none"
+spellcheck="false"
+autocomplete="off"
+placeholder="Type answers separated by spaces"
+/>
+
+<button id="submitBtn">Submit</button>
+<button id="revealBtn">Reveal Answers</button>
+<button id="nextBtn">Next</button>
+
+<div id="feedback" aria-live="polite"></div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
