@@ -1,23 +1,34 @@
-let lists=JSON.parse(localStorage.getItem("scrabbleLists")||"{}")
+const STORAGE_KEY = "scrabbleTrainerLists"
 
-let currentList=[]
-let queue=[]
-let currentItem=null
+let lists = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
+
+let queue = []
+let currentItem = null
 
 function saveLists(){
-localStorage.setItem("scrabbleLists",JSON.stringify(lists))
+localStorage.setItem(STORAGE_KEY, JSON.stringify(lists))
 }
 
 function refreshListSelector(){
 
-let select=document.getElementById("listSelect")
+const select = document.getElementById("listSelect")
 
-select.innerHTML=""
+select.innerHTML = ""
 
-Object.keys(lists).forEach(name=>{
-let opt=document.createElement("option")
-opt.value=name
-opt.textContent=name
+const names = Object.keys(lists)
+
+if(names.length === 0){
+const opt = document.createElement("option")
+opt.textContent = "No lists yet"
+opt.value = ""
+select.appendChild(opt)
+return
+}
+
+names.forEach(name=>{
+const opt = document.createElement("option")
+opt.value = name
+opt.textContent = name
 select.appendChild(opt)
 })
 
@@ -25,12 +36,12 @@ select.appendChild(opt)
 
 function jumble(word){
 
-let vowels="aeiou"
+const vowels = "aeiou"
 let v=[]
 let c=[]
 
 word.split("").forEach(l=>{
-if(vowels.includes(l))v.push(l)
+if(vowels.includes(l)) v.push(l)
 else c.push(l)
 })
 
@@ -47,9 +58,9 @@ let groups={}
 
 words.forEach(w=>{
 
-let key=w.split("").sort().join("")
+const key = w.split("").sort().join("")
 
-if(!groups[key])groups[key]=[]
+if(!groups[key]) groups[key] = []
 
 groups[key].push(w)
 
@@ -61,37 +72,49 @@ return Object.values(groups)
 
 document.getElementById("saveList").onclick=function(){
 
-let name=document.getElementById("listName").value.trim()
+const name = document.getElementById("listName").value.trim()
 
-let words=document.getElementById("wordInput").value
+const words = document.getElementById("wordInput").value
 .toLowerCase()
 .split("\n")
 .map(w=>w.trim())
 .filter(w=>w.length>0)
 
-if(!name||words.length===0)return
+if(!name){
+announce("Please enter a list name")
+return
+}
 
-lists[name]=groupAnagrams(words)
+if(words.length===0){
+announce("Please enter at least one word")
+return
+}
+
+lists[name] = groupAnagrams(words)
 
 saveLists()
 
 refreshListSelector()
 
+announce("List saved")
+
 }
 
 document.getElementById("loadList").onclick=function(){
 
-let name=document.getElementById("listSelect").value
+const name = document.getElementById("listSelect").value
 
-currentList=lists[name]
+if(!lists[name]){
+announce("Please choose a list")
+return
+}
 
-queue=currentList.map(item=>({
-
-answers:item,
-
+queue = lists[name].map(set => ({
+answers:set,
 hiddenUntil:0
-
 }))
+
+announce("List loaded")
 
 nextItem()
 
@@ -99,50 +122,53 @@ nextItem()
 
 function nextItem(){
 
-let now=Date.now()
-
-let available=queue.filter(x=>x.hiddenUntil<=now)
-
-if(available.length===0){
-document.getElementById("letters").innerText="No available words yet"
+if(queue.length===0){
+announce("No words available")
 return
 }
 
-currentItem=available[Math.floor(Math.random()*available.length)]
+const now = Date.now()
 
-let j=jumble(currentItem.answers[0])
+const available = queue.filter(x=>x.hiddenUntil<=now) if(available.length===0){
+announce("All words hidden for now")
+return
+}
 
-document.getElementById("letters").innerText=j.split("").join(" ")
+currentItem = available[Math.floor(Math.random()*available.length)]
 
-document.getElementById("anagramCount").innerText=
-currentItem.answers.length+" anagrams"
+const letters = jumble(currentItem.answers[0])
 
-document.getElementById("feedback").innerText=""
+document.getElementById("letters").innerText = letters.split("").join(" ")
 
-document.getElementById("answer").value="" 
+document.getElementById("anagramCount").innerText =
+currentItem.answers.length + " anagrams"
+
+document.getElementById("answer").value=""
+
+speakLetters(letters)
+
 }
 
 document.getElementById("submitBtn").onclick=function(){
 
-let input=document.getElementById("answer").value
+const input = document.getElementById("answer").value
 .toLowerCase()
 .split(" ")
 .filter(x=>x)
 
-let correct=input.filter(w=>currentItem.answers.includes(w))
+const correct = input.filter(w => currentItem.answers.includes(w))
 
-if(correct.length===currentItem.answers.length){
+if(correct.length === currentItem.answers.length){
 
-document.getElementById("feedback").innerText="Correct"
+announce("Correct")
 
-currentItem.hiddenUntil=Date.now()+5*24*60*60*1000
+currentItem.hiddenUntil = Date.now() + (5*24*60*60*1000)
 
 }else{
 
-document.getElementById("feedback").innerText=
-correct.length+" correct"
+announce(correct.length + " correct")
 
-let pos=Math.min(queue.length,Math.floor(Math.random()*20))
+const pos = Math.min(queue.length, Math.floor(Math.random()*20))
 
 queue.splice(pos,0,currentItem)
 
@@ -150,93 +176,28 @@ queue.splice(pos,0,currentItem)
 
 }
 
-document.getElementById("revealBtn").onclick=function(){
+document.getElementById("revealBtn").onclick=function(){ announce("Answers are " + currentItem.answers.join(", "))
 
-document.getElementById("feedback").innerText=
-"Answers: "+currentItem.answers.join(", ")
-
-let pos=Math.min(queue.length,Math.floor(Math.random()*20))
+const pos = Math.min(queue.length, Math.floor(Math.random()*20))
 
 queue.splice(pos,0,currentItem)
 
 }
 
-document.getElementById("nextBtn").onclick=nextItem
+document.getElementById("nextBtn").onclick = nextItem
 
-refreshListSelector() j=jumble(current[0])
+function announce(msg){
+document.getElementById("feedback").innerText = msg
+}
 
-document.getElementById("letters").innerText=j.split("").join(" ")
-document.getElementById("anagramCount").innerText=current.length+" anagrams"
+function speakLetters(letters){
 
-speakLetters(j,current.length)
+let spaced = letters.split("").join(" ")
 
-document.getElementById("feedback").innerText=""
-document.getElementById("answer").value=""
+let utter = new SpeechSynthesisUtterance(spaced)
+
+speechSynthesis.speak(utter)
 
 }
 
-function speakLetters(letters,count){
-
-let msg=" "+letters.split("").join(" ")+" "+count+" anagrams"
-
-let live=document.getElementById("letters")
-
-live.setAttribute("aria-label",msg) }
-
-function playCorrect(){
-
-let audio=new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQgAAAAA")
-
-audio.play()
-
-}
-
-function playWrong(){
-
-let audio=new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQgAAAAA")
-
-audio.play()
-
-}
-
-document.getElementById("submitBtn").onclick=function(){
-
-let input=document.getElementById("answer").value.toLowerCase().split(" ")
-
-let correct=input.filter(w=>current.includes(w))
-
-if(correct.length===current.length){
-
-document.getElementById("feedback").innerText="Correct!"
-playCorrect()
-stats.correct++
-
-}else{
-
-stats.wrong++
-
-document.getElementById("feedback").innerText="You got "+correct.length+" correct"
-playWrong()
-
-}
-
-updateStats()
-
-}
-
-document.getElementById("revealBtn").onclick=function(){
-
-document.getElementById("feedback").innerText="Answers: "+current.join(", ")
-stats.wrong++
-updateStats()
-
-}
-
-document.getElementById("nextBtn").onclick=nextWord
-
-function updateStats(){ document.getElementById("stats").innerText=
-"Correct: "+stats.correct+" Wrong: "+stats.wrong
-
-}
-
-nextWord()
+refreshListSelector()
