@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Scrabble Anagram Trainer</title>
+<title>Scrabble Trainer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -11,14 +11,28 @@
 
 <h1>Scrabble Trainer</h1>
 
-<div id="stats"></div>
+<h2>Select List</h2>
 
-<div id="jumbleArea">
+<select id="listSelect"></select>
+<button id="loadList">Load List</button>
+
+<h2>Create List</h2>
+
+<label>List Name</label>
+<input id="listName">
+
+<label>Words (one per line)</label>
+<textarea id="wordInput"></textarea>
+
+<button id="saveList">Save List</button>
+
+<hr>
+
+<div id="trainer">
+
 <div id="letters" aria-live="assertive"></div>
-<div id="anagramCount"></div>
-</div>
 
-<label for="answer">Your answers</label>
+<div id="anagramCount"></div>
 
 <input
 id="answer"
@@ -31,12 +45,13 @@ placeholder="Type answers separated by spaces"
 />
 
 <button id="submitBtn">Submit</button>
-<button id="revealBtn">Reveal Answers</button>
+<button id="revealBtn">Reveal</button>
 <button id="nextBtn">Next</button>
 
 <div id="feedback" aria-live="polite"></div>
 
-<script src="script.js"></script>
+</div>
 
-</body>
+<script src="script.js"></script>
+ </body>
 </html>
